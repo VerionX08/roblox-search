@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Roblox Account Lookup</title>
+<style>
+body {
+  background: #0f0f0f;
+  color: white;
+  font-family: Arial;
+  text-align: center;
+  padding: 40px;
+}
+input {
+  padding: 10px;
+  width: 200px;
+}
+button {
+  padding: 10px 15px;
+  cursor: pointer;
+  background: #00ff88;
+  border: none;
+}
+#card {
+  margin-top: 30px;
+  padding: 20px;
+  background: #1a1a1a;
+  display: inline-block;
+  border-radius: 10px;
+}
+img {
+  border-radius: 8px;
+}
+</style>
+</head>
+<body>
+
+<h2>Roblox Account Lookup</h2>
+
+<input type="text" id="username" placeholder="Nhập username">
+<button onclick="lookup()">Tìm</button>
+
+<div id="result"></div>
+
+<script>
+async function lookup() {
+  const username = document.getElementById("username").value;
+  const resultDiv = document.getElementById("result");
+  resultDiv.innerHTML = "Đang tải...";
+
+  const userRes = await fetch("https://users.roblox.com/v1/usernames/users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      usernames: [username],
+      excludeBannedUsers: false
+    })
+  });
+
+  const userData = await userRes.json();
+
+  if (!userData.data.length) {
+    resultDiv.innerHTML = "Không tìm thấy user.";
+    return;
+  }
+
+  const userId = userData.data[0].id;
+
+  const profileRes = await fetch(`https://users.roblox.com/v1/users/${userId}`);
+  const profile = await profileRes.json();
+
+  const avatarRes = await fetch(
+    `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=420x420&format=Png&isCircular=false`
+  );
+  const avatarData = await avatarRes.json();
+  const avatarUrl = avatarData.data[0].imageUrl;
+
+  resultDiv.innerHTML = `
+    <div id="card">
+      <h3>${profile.name}</h3>
+      <img src="${avatarUrl}" width="150">
+      <p>User ID: ${userId}</p>
+      <p>Display Name: ${profile.displayName}</p>
+      <p>Created: ${new Date(profile.created).toLocaleDateString()}</p>
+    </div>
+  `;
+}
+</script>
+
+</body>
+</html>
