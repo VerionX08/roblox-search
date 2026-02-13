@@ -23,12 +23,12 @@ export default async function handler(req, res) {
 
     const userId = userData.data[0].id;
 
-    const profileRes = await fetch(`https://users.roblox.com/v1/users/${userId}`);
-    const profile = await profileRes.json();
+    const [profileRes, avatarRes] = await Promise.all([
+      fetch(`https://users.roblox.com/v1/users/${userId}`),
+      fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=420x420&format=Png&isCircular=false`)
+    ]);
 
-    const avatarRes = await fetch(
-      `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=420x420&format=Png&isCircular=false`
-    );
+    const profile = await profileRes.json();
     const avatarData = await avatarRes.json();
 
     res.status(200).json({
